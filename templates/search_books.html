@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Search Buku</title></head>
+<body>
+<h2>Cari Buku</h2>
+
+<form method="get">
+    <input type="text" name="q" value="{{ query }}" placeholder="Cari judul atau penulis..." required>
+    <button type="submit">Cari</button>
+</form>
+
+{% if query %}
+    <h3>Hasil untuk "{{ query }}":</h3>
+    <ul>
+    {% for book in books %}
+        <li>{{ book.title }} oleh {{ book.author }} (Status: {{ book.status }})</li>
+    {% else %}
+        <li>Tidak ditemukan.</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<a href="/">Kembali ke Beranda</a>
+</body>
+</html>

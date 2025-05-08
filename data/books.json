@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "title": "Book A",
+        "author": "Author A",
+        "status": "borrowed"
+    },
+    {
+        "id": 2,
+        "title": "Book B",
+        "author": "Author B",
+        "status": "available"
+    }
+]
