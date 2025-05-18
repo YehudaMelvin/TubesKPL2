@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>History Peminjaman</title></head>
+<body>
+<h2>History Peminjaman</h2>
+<ul>
+{% for h in history %}
+    <li>{{ h.book_title }} dipinjam oleh member #{{ h.member_id }} di {{ h.date }}</li>
+{% endfor %}
+</ul>
+<a href="/">Back to Home</a>
+</body>
+</html>

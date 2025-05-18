@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Members</title></head>
+<body>
+<h2>Members</h2>
+<ul>
+{% for member in members %}
+    <li>{{ member.name }}</li>
+{% endfor %}
+</ul>
+<a href="/">Back to Home</a>
+</body>
+</html>

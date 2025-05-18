@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Data Buku</title></head>
+<body>
+<h2>Data Buku</h2>
+<p>
+    <a href="/add-book">Tambah Data Buku</a> | 
+    <a href="/delete-book">Hapus Data Buku</a>
+</p>
+
+<ul>
+    {% for book in books %}
+        <li>
+            {{ book.title }} oleh {{ book.author }} ({{ book.status }})
+            - <a href="/update-status/{{ book.id }}">Update Status</a>
+        </li>
+    {% endfor %}
+    </ul>
+    
+<a href="/">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,82 @@
+import json
+import os
+from flask import Flask, redirect, render_template, request
+
+DATA_DIR = "data"
+
+def read_json(filename):
+    path = os.path.join(DATA_DIR, filename)
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return json.load(f)
+    return []
+
+def write_json(filename, data):
+    with open(os.path.join(DATA_DIR, filename), "w") as f:
+        json.dump(data, f, indent=4)
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# ------------------- BOOKS -----------------------
+@app.route("/books")
+def books_list():
+    books = read_json("books.json")
+    return render_template("books.html", books=books)
+
+@app.route("/add-book", methods=["GET", "POST"])
+def add_book():
+    books = read_json("books.json")
+    if request.method == "POST":
+        new_id = max((book["id"] for book in books), default=0) + 1
+        books.append({
+            "id": new_id,
+            "title": request.form["title"],
+            "author": request.form["author"],
+            "status": "available"
+        })
+        write_json("books.json", books)
+        return redirect("/books")
+    return render_template("add_book.html")
+
+@app.route("/delete-book", methods=["GET", "POST"])
+def delete_book():
+    books = read_json("books.json")
+    if request.method == "POST":
+        book_id = int(request.form["book_id"])
+        books = [b for b in books if b["id"] != book_id]
+        write_json("books.json", books)
+        return redirect("/books")
+    return render_template("delete_book.html")
+
+@app.route("/update-status/<int:book_id>", methods=["GET", "POST"])
+def update_status(book_id):
+    books = read_json("books.json")
+    book = next((b for b in books if b["id"] == book_id), None)
+    if not book:
+        return "Book not found", 404
+    if request.method == "POST":
+        book["status"] = request.form["status"]
+        write_json("books.json", books)
+        return redirect("/books")
+    return render_template("update_status.html", book=book)
+
+# ------------------- MEMBERS -----------------------
+@app.route("/members")
+def members_list():
+    members = read_json("members.json")
+    return render_template("members.html", members=members)
+
+# ------------------- HISTORY -----------------------
+@app.route("/history")
+def history_list():
+    history = read_json("history.json")
+    books = {b["id"]: b["title"] for b in read_json("books.json")}
+    members = {m["id"]: m["name"] for m in read_json("members.json")}
+    return render_template("history.html", history=history, books=books, members=members)
+
+if __name__ == "__main__":
+    app.run(debug=True)
