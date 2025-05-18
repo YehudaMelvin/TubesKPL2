@@ -1,21 +1,19 @@
 import json
 import os
-from flask import Flask, redirect, render_template, request
-from flasgger import Swagger
+from flask import Flask, redirect, render_template, request, jsonify
 from datetime import datetime
+from config import MAX_BOOKS_PER_MEMBER, DATA_DIR  # THRESHOLD dihapus jika tidak digunakan
 
-DATA_DIR = "data"
+app = Flask(__name__)
 
+# Helper functions
 def get_item_by_id(data, item_id):
-    """Cari satu item dari list berdasarkan ID."""
     return next((item for item in data if item["id"] == item_id), None)
 
 def get_new_id(data):
-    """Menghasilkan ID baru berdasarkan data yang sudah ada."""
     return max((item["id"] for item in data), default=0) + 1
 
 def delete_item_by_id(data, item_id):
-    """Menghapus item berdasarkan ID."""
     return [item for item in data if item["id"] != item_id]
 
 def append_history_entry(book_id, member_id, status):
@@ -40,9 +38,7 @@ def write_json(filename, data):
     with open(os.path.join(DATA_DIR, filename), "w") as f:
         json.dump(data, f, indent=4)
 
-app = Flask(__name__)
-swagger = Swagger(app)
-
+# Routes
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -85,7 +81,6 @@ def search_books():
         books = [book for book in books if query in book["title"].lower() or query in book["author"].lower()]
     return render_template("search_books.html", books=books, query=query)
 
-
 @app.route("/update-status/<int:book_id>", methods=["GET", "POST"])
 def update_status(book_id):
     books = read_json("books.json")
@@ -97,17 +92,21 @@ def update_status(book_id):
         new_status = request.form["status"]
         member_id = int(request.form["member_id"])
 
+        # Optional: batas maksimal peminjaman
+        if new_status == "borrowed":
+            history = read_json("history.json")
+            active_borrows = [h for h in history if h["member_id"] == member_id and h["status"] == "borrowed"]
+            if len(active_borrows) >= MAX_BOOKS_PER_MEMBER:
+                return "Maksimal peminjaman tercapai", 400
+
         book["status"] = new_status
         write_json("books.json", books)
-
         append_history_entry(book_id, member_id, new_status)
         return redirect("/books")
 
     members = read_json("members.json")
     return render_template("update_status.html", book=book, members=members)
 
-
-# Table for valid status transitions
 BOOK_STATUS_TABLE = {
     "available": ["borrowed", "reserved"],
     "borrowed": ["returned"],
@@ -115,7 +114,6 @@ BOOK_STATUS_TABLE = {
     "returned": ["available"],
     "cancelled": ["available"]
 }
-
 
 @app.route("/members")
 def members_list():
@@ -126,16 +124,12 @@ def members_list():
 def add_member():
     members = read_json("members.json")
     if request.method == "POST":
-        new_id = max((m["id"] for m in members), default=0) + 1
-        name = request.form["name"]
-        email = request.form["email"]
-
+        new_id = get_new_id(members)
         members.append({
             "id": new_id,
-            "name": name,
-            "email": email
+            "name": request.form["name"],
+            "email": request.form["email"]
         })
-
         write_json("members.json", members)
         return redirect("/members")
     return render_template("add_member.html")
@@ -163,6 +157,18 @@ def history_list():
     history = [format_history_entry(h, books, members) for h in raw_history]
     return render_template("history.html", history=history)
 
+# API Endpoints
+@app.route("/api/books")
+def api_books():
+    return jsonify(read_json("books.json"))
+
+@app.route("/api/members")
+def api_members():
+    return jsonify(read_json("members.json"))
+
+@app.route("/api/history")
+def api_history():
+    return jsonify(read_json("history.json"))
 
 if __name__ == "__main__":
     app.run(debug=True)
