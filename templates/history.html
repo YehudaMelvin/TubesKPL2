@@ -1,14 +1,6 @@
-<head><title>History</title></head>
-<body>
-<h2>History</h2>
-<ul>
-    {% for h in history %}
-      <li>{{ h }}</li>
-    {% endfor %}
-    <a href="/">Kembali ke Beranda</a>
-  </ul>
-  </body>
-  
-
-
-  
+{% extends "layout.html" %}
+{% block title %}Riwayat Peminjaman{% endblock %}
+{% block content %}
+<h2>Riwayat Peminjaman</h2>
+{% include "components/table_component.html" %}
+{% endblock %}

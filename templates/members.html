@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head><title>Daftar Member</title></head>
-<body>
-<h2>Daftar Member</h2>
-<ul>
-{% for m in members %}
-    <li>{{ m.name }} - {{ m.email }}</li>
-{% endfor %}
-</ul>
-
-<a href="/add-member"> Tambah Member</a><br>
-<a href="/">Kembali ke Beranda</a>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block title %}Daftar Anggota{% endblock %}
+{% block content %}
+<h2>Daftar Anggota</h2>
+{% include "components/table_component.html" %}
+{% endblock %}
