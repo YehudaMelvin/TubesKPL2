@@ -3,7 +3,7 @@
         "id": 1,
         "title": "Book A",
         "author": "Author A",
-        "status": "borrowed"
+        "status": "available"
     },
     {
         "id": 2,

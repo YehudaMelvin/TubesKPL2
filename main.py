@@ -93,18 +93,28 @@ def update_status(book_id):
     if not book:
         return "Book not found", 404
 
+    current_status = book["status"]
+    allowed_transitions = BOOK_STATUS_TABLE.get(current_status, [])
+
     if request.method == "POST":
         new_status = request.form["status"]
         member_id = int(request.form["member_id"])
 
+        if new_status not in allowed_transitions:
+            return f"Transisi status dari '{current_status}' ke '{new_status}' tidak valid.", 400
+
         book["status"] = new_status
         write_json("books.json", books)
-
         append_history_entry(book_id, member_id, new_status)
         return redirect("/books")
 
     members = read_json("members.json")
-    return render_template("update_status.html", book=book, members=members)
+    return render_template(
+        "update_status.html",
+        book=book,
+        members=members,
+        allowed_transitions=allowed_transitions
+    )
 
 
 # Table for valid status transitions
