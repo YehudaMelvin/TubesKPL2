@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head><title>Update Book Status</title></head>
+<head><title>Update Status</title></head>
 <body>
-<h2>Update Status for "{{ book.title }}"</h2>
+<h2>Update Status Buku: {{ book.title }}</h2>
 <form method="post">
-    <label>Status:</label>
-    <select name="status">
-        <option value="available" {% if book.status == 'available' %}selected{% endif %}>Available</option>
-        <option value="borrowed" {% if book.status == 'borrowed' %}selected{% endif %}>Borrowed</option>
+    <label for="member_id">Member:</label>
+    <select name="member_id">
+        {% for m in members %}
+            <option value="{{ m.id }}">{{ m.name }}</option>
+        {% endfor %}
     </select>
-    <input type="submit" value="Update Status">
+
+    <label for="status">Status:</label>
+    <select name="status">
+        {% for status in allowed_transitions %}
+            <option value="{{ status }}">{{ status }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Update</button>
 </form>
-<a href="/books">Back to Books</a>
+<a href="/books">Back</a>
 </body>
 </html>

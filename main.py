@@ -2,7 +2,31 @@ import json
 import os
 from flask import Flask, redirect, render_template, request
 
+# Lokasi folder data
 DATA_DIR = "data"
+
+def get_item_by_id(data, item_id):
+    """Cari satu item dari list berdasarkan ID."""
+    return next((item for item in data if item["id"] == item_id), None)
+
+def get_new_id(data):
+    """Menghasilkan ID baru berdasarkan data yang sudah ada."""
+    return max((item["id"] for item in data), default=0) + 1
+
+def delete_item_by_id(data, item_id):
+    """Menghapus item berdasarkan ID."""
+    return [item for item in data if item["id"] != item_id]
+
+def append_history_entry(book_id, member_id, status):
+    history = read_json("history.json")
+    new_entry = {
+        "book_id": book_id,
+        "member_id": member_id,
+        "status": status,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    history.append(new_entry)
+    write_json("history.json", history)
 
 def read_json(filename):
     path = os.path.join(DATA_DIR, filename)
@@ -11,12 +35,14 @@ def read_json(filename):
             return json.load(f)
     return []
 
+# Fungsi bantu tulis JSON
 def write_json(filename, data):
     with open(os.path.join(DATA_DIR, filename), "w") as f:
         json.dump(data, f, indent=4)
 
 app = Flask(__name__)
 
+# ------------------- HOME -----------------------
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -24,8 +50,14 @@ def home():
 # ------------------- BOOKS -----------------------
 @app.route("/books")
 def books_list():
-    books = read_json("books.json")
-    return render_template("books.html", books=books)
+    data = read_json("books.json")
+    columns = [
+        {"header": "ID", "key": "id"},
+        {"header": "Judul", "key": "title"},
+        {"header": "Penulis", "key": "author"},
+        {"header": "Status", "key": "status"},
+    ]
+    return render_template("books.html", data=data, columns=columns)
 
 @app.route("/add-book", methods=["GET", "POST"])
 def add_book():
@@ -70,13 +102,47 @@ def members_list():
     members = read_json("members.json")
     return render_template("members.html", members=members)
 
-# ------------------- HISTORY -----------------------
+@app.route("/add-member", methods=["GET", "POST"])
+def add_member():
+    members = read_json("members.json")
+    if request.method == "POST":
+        new_id = max((m["id"] for m in members), default=0) + 1
+        name = request.form["name"]
+        email = request.form["email"]
+
+        members.append({
+            "id": new_id,
+            "name": name,
+            "email": email
+        })
+
+        write_json("members.json", members)
+        return redirect("/members")
+    return render_template("add_member.html")
+
+HISTORY_FORMAT_TABLE = {
+    "template": "{book} dipinjam oleh {member} pada {borrowed} dan dikembalikan pada {returned}",
+    "not_returned": "{book} dipinjam oleh {member} pada {borrowed} dan belum dikembalikan"
+}
+
+def format_history_entry(entry, books, members):
+    book = books.get(entry["book_id"], "Buku tidak ditemukan")
+    member = members.get(entry["member_id"], "Member tidak ditemukan")
+    borrowed = entry.get("borrowed_at", "-")
+    returned = entry.get("returned_at")
+    if returned:
+        return HISTORY_FORMAT_TABLE["template"].format(book=book, member=member, borrowed=borrowed, returned=returned)
+    else:
+        return HISTORY_FORMAT_TABLE["not_returned"].format(book=book, member=member, borrowed=borrowed)
+
 @app.route("/history")
 def history_list():
     history = read_json("history.json")
     books = {b["id"]: b["title"] for b in read_json("books.json")}
     members = {m["id"]: m["name"] for m in read_json("members.json")}
-    return render_template("history.html", history=history, books=books, members=members)
+    history = [format_history_entry(h, books, members) for h in raw_history]
+    return render_template("history.html", history=history)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

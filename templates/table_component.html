@@ -1,0 +1,18 @@
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            {% for col in columns %}
+                <th>{{ col.header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data %}
+            <tr>
+                {% for col in columns %}
+                    <td>{{ row[col.key] }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

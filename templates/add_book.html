@@ -1,13 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head><title>Tambah Buku</title></head>
-<body>
+{% extends "layout.html" %}
+{% block title %}Tambah Buku{% endblock %}
+{% block content %}
 <h2>Tambah Buku</h2>
 <form method="post" action="/add-book">
-    Title: <input type="text" name="title" required><br>
-    Author: <input type="text" name="author" required><br>
-    <input type="submit" value="Add Book">
+    <label>Judul:</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>Penulis:</label><br>
+    <input type="text" name="author" required><br><br>
+
+    <input type="submit" value="Tambah Buku">
 </form>
-<a href="/books">Back to Books</a>
-</body>
-</html>
+<a href="/books">Kembali ke Daftar Buku</a>
+{% endblock %}
