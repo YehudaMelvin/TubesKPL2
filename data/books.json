@@ -1,14 +1,14 @@
 [
     {
-        "id": 1,
-        "title": "Book A",
-        "author": "Author A",
-        "status": "available"
-    },
-    {
         "id": 2,
         "title": "Book B",
         "author": "Author B",
+        "status": "available"
+    },
+    {
+        "id": 3,
+        "title": "Apasih?",
+        "author": "awikwok",
         "status": "available"
     }
 ]

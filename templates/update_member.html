@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Member</title>
+</head>
+<body>
+    <h1>Update Member</h1>
+    <form method="post">
+        <label>Nama:</label>
+        <input type="text" name="name" value="{{ member.name }}" required><br>
+        <label>Email:</label>
+        <input type="email" name="email" value="{{ member.email }}" required><br>
+        <button type="submit">Update</button>
+    </form>
+    <a href="/members">Kembali ke Members</a>
+</body>
+</html>

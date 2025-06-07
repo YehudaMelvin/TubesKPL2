@@ -1,14 +1,19 @@
-<head><title>History</title></head>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>History</title>
+</head>
 <body>
-<h2>History</h2>
-<ul>
-    {% for h in history %}
-      <li>{{ h }}</li>
-    {% endfor %}
-    <a href="/">Kembali ke Beranda</a>
-  </ul>
-  </body>
-  
+    <h1>Riwayat Peminjaman/Pengembalian</h1>
+    <ul>
+        {% for item in history %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
 
-
-  
+    <br>
+    <a href="/delete-history">Hapus History (per index)</a>
+    <br><br>
+    <a href="/">Kembali ke Home</a>
+</body>
+</html>
