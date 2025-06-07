@@ -1,0 +1,47 @@
+
+import unittest
+import os
+import json
+from repositories import BookRepository
+
+TEST_FILE = "test_books.json"
+
+BookRepository.FILENAME = TEST_FILE
+
+class TestBookRepository(unittest.TestCase):
+
+    def setUp(self):
+        self.sample_books = [
+            {"id": "1", "title": "Book One"},
+            {"id": "2", "title": "Book Two"}
+        ]
+        with open(os.path.join("data", TEST_FILE), "w") as f:
+            json.dump(self.sample_books, f)
+
+    def tearDown(self):
+        os.remove(os.path.join("data", TEST_FILE))
+
+    def test_get_all(self):
+        books = BookRepository.get_all()
+        self.assertEqual(len(books), 2)
+
+    def test_get_by_id(self):
+        book = BookRepository.get_by_id("1")
+        self.assertIsNotNone(book)
+        self.assertEqual(book["title"], "Book One")
+
+    def test_add_book(self):
+        new_book = {"id": "3", "title": "Book Three"}
+        BookRepository.add(new_book)
+        books = BookRepository.get_all()
+        self.assertEqual(len(books), 3)
+        self.assertIn(new_book, books)
+
+    def test_delete_book(self):
+        BookRepository.delete("1")
+        books = BookRepository.get_all()
+        self.assertEqual(len(books), 1)
+        self.assertEqual(books[0]["id"], "2")
+
+if __name__ == '__main__':
+    unittest.main()
