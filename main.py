@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, render_template, request
+from flask import Flask, flash, redirect, render_template, request
 from flasgger import Swagger
 from repositories import BookRepository, MemberRepository, HistoryRepository
 
@@ -21,17 +21,19 @@ HISTORY_FORMAT = {
 # Flask setup
 app = Flask(__name__)
 swagger = Swagger(app)
-
+app.secret_key = 'supersecretkey'
 # Utility
 
 def format_history_entry(entry, books_dict, members_dict):
     book = books_dict.get(entry.get("book_id"), "Buku tidak ditemukan")
     member = members_dict.get(entry.get("member_id"), "Member tidak ditemukan")
-    borrowed = entry.get("borrowed_at", "-")
+    borrowed = entry.get("borrowed_at", entry.get("date", "-"))
     returned = entry.get("returned_at")
+
     if returned:
         return HISTORY_FORMAT["template"].format(book=book, member=member, borrowed=borrowed, returned=returned)
-    return HISTORY_FORMAT["not_returned"].format(book=book, member=member, borrowed=borrowed)
+    else:
+        return HISTORY_FORMAT["not_returned"].format(book=book, member=member, borrowed=borrowed)
 
 def get_next_id(data_list):
     return max((item.get("id", 0) for item in data_list), default=0) + 1
@@ -116,10 +118,31 @@ def update_book_status(book_id):
         if new_status not in valid_transitions:
             return f"Transisi tidak valid dari '{current_status}' ke '{new_status}'", 400
 
+        # Special check for "returned"
+        if new_status == "returned":
+            borrowed_entry = None
+            for entry in reversed(HistoryRepository.get_all()):
+                if (entry["book_id"] == book_id
+                    and entry["status"] == "borrowed"
+                    and entry.get("returned_at") is None):
+                    borrowed_entry = entry
+                    break
+
+            if borrowed_entry is None:
+                return "Tidak ada peminjaman aktif untuk buku ini.", 400
+
+            if borrowed_entry["member_id"] != member_id:
+                return "Hanya member yang meminjam buku ini yang boleh mengembalikannya.", 403 
+
+        # Update book status
         book["status"] = new_status
         try:
             BookRepository.update(book_id, book)
-            HistoryRepository.add(book_id, member_id, new_status)
+
+            # Only update history for "borrowed" or "returned"
+            if new_status in ["borrowed", "returned"]:
+                HistoryRepository.add(book_id, member_id, new_status)
+
         except Exception as e:
             app.logger.error(f"Gagal memperbarui status buku: {e}")
             return "Gagal memperbarui status.", 500
@@ -215,17 +238,36 @@ def delete_history():
         try:
             index = int(request.form.get("index", "-1"))
         except ValueError:
-            return "Index tidak valid.", 400
+            flash("Index tidak valid.")
+            return redirect("/delete-history")
+
+        history = HistoryRepository.get_all()
+        history_length = len(history)
+
+        if history_length == 0:
+            flash("Tidak ada history yang dapat dihapus.")
+            return redirect("/history")
+
+        if index < 0 or index >= history_length:
+            flash(f"Index {index} tidak tersedia. Index yang valid: 0 sampai {history_length - 1}.")
+            return redirect("/delete-history")
+
         try:
-            history = HistoryRepository.get_all()
-            if 0 <= index < len(history):
-                history.pop(index)
-                HistoryRepository.save_all(history)
+            history.pop(index)
+            HistoryRepository.save_all(history)
+            flash(f"History pada index {index} berhasil dihapus.")
         except Exception as e:
             app.logger.error(f"Gagal menghapus history: {e}")
-            return "Gagal menghapus history.", 500
+            flash("Terjadi kesalahan saat menghapus history.")
+
         return redirect("/history")
-    return render_template("delete_history.html")
+
+    # Untuk GET → tampilkan form hapus
+    history = HistoryRepository.get_all()
+    history_length = len(history)
+    return render_template("delete_history.html", history_length=history_length)
 
 if __name__ == "__main__":
     app.run(debug=False)
+
+

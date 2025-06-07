@@ -90,13 +90,41 @@ class HistoryRepository:
     @staticmethod
     def add(book_id, member_id, status):
         history = HistoryRepository.get_all()
-        history.append({
-            "book_id": book_id,
-            "member_id": member_id,
-            "status": status,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
-        _write_json(HistoryRepository.FILENAME, history)
+
+        if status == "borrowed":
+            # Tambahkan entry baru saat dipinjam
+            history.append({
+                "book_id": book_id,
+                "member_id": member_id,
+                "status": status,
+                "borrowed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "returned_at": None
+            })
+        elif status == "returned":
+            # Update entry borrowed terakhir yang belum dikembalikan
+            for entry in reversed(history):
+                if (entry["book_id"] == book_id
+                    and entry["member_id"] == member_id
+                    and entry["status"] == "borrowed"
+                    and entry.get("returned_at") is None):
+                    
+                    entry["returned_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    break
+            else:
+                # Jika tidak ada borrowed aktif, tetap catat returned manual
+                history.append({
+                    "book_id": book_id,
+                    "member_id": member_id,
+                    "status": status,
+                    "borrowed_at": "-",
+                    "returned_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+        else:
+            # Status lain (available, reserved, cancelled) → TIDAK masuk ke history
+            # Jadi di sini kita cukup return saja, tidak perlu append ke history
+            return
+
+        HistoryRepository.save_all(history)
 
     @staticmethod
     def save_all(history_data):

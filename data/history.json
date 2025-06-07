@@ -1,37 +1,5 @@
 [
     {
-        "id": 1,
-        "book_id": 1,
-        "member_id": 2,
-        "borrowed_at": "2024-04-15",
-        "returned_at": null
-    },
-    {
-        "id": 2,
-        "book_id": 2,
-        "member_id": 1,
-        "borrowed_at": "2024-04-10",
-        "returned_at": "2024-04-18"
-    },
-    {
-        "book_id": 1,
-        "member_id": 2,
-        "status": "borrowed",
-        "date": "2025-05-08 11:24:02"
-    },
-    {
-        "book_id": 1,
-        "member_id": 1,
-        "status": "returned",
-        "date": "2025-05-18 11:19:52"
-    },
-    {
-        "book_id": 1,
-        "member_id": 1,
-        "status": "available",
-        "date": "2025-05-18 11:19:55"
-    },
-    {
         "book_id": 1,
         "member_id": 1,
         "status": "reserved",
@@ -42,5 +10,42 @@
         "member_id": 1,
         "status": "cancelled",
         "date": "2025-06-05 11:01:40"
+    },
+    {
+        "book_id": 4,
+        "member_id": 1,
+        "status": "reserved",
+        "date": "2025-06-07 11:21:50"
+    },
+    {
+        "book_id": 4,
+        "member_id": 1,
+        "status": "available",
+        "date": "2025-06-07 11:22:08"
+    },
+    {
+        "book_id": 3,
+        "member_id": 1,
+        "status": "returned",
+        "date": "2025-06-07 11:28:06"
+    },
+    {
+        "book_id": 3,
+        "member_id": 2,
+        "status": "borrowed",
+        "date": "2025-06-07 11:28:38"
+    },
+    {
+        "book_id": 3,
+        "member_id": 1,
+        "status": "returned",
+        "date": "2025-06-07 11:28:40"
+    },
+    {
+        "book_id": 2,
+        "member_id": 1,
+        "status": "borrowed",
+        "borrowed_at": "2025-06-07 11:42:11",
+        "returned_at": "2025-06-07 11:42:30"
     }
 ]
